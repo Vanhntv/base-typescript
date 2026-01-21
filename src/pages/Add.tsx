@@ -4,12 +4,19 @@ import { useNavigate } from "react-router-dom";
 
 type CourseForm = {
   name: string;
-  level: string;
+  credit: number;
+  category: string;
   teacher: string;
 };
 
 function AddPage() {
-  const { register, handleSubmit, reset } = useForm<CourseForm>();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<CourseForm>();
+
   const navigate = useNavigate();
 
   const onSubmit = async (values: CourseForm) => {
@@ -17,7 +24,6 @@ function AddPage() {
       await axios.post("http://localhost:3000/courses", values);
       alert("Thêm khóa học thành công!");
       reset();
-
       navigate("/courses");
     } catch (error) {
       console.log(error);
@@ -26,40 +32,73 @@ function AddPage() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 max-w-xl mx-auto">
       <h1 className="text-2xl font-semibold mb-6">Thêm mới khóa học</h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Tên khóa học */}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
           <label className="block font-medium mb-1">Tên khóa học</label>
           <input
-            {...register("name", { required: true })}
-            type="text"
+            {...register("name", {
+              required: "Tên khóa học bắt buộc",
+              minLength: {
+                value: 3,
+                message: "Tên khóa học phải lớn hơn 3 ký tự",
+              },
+            })}
             className="w-full border rounded-lg px-3 py-2"
           />
+          {errors.name && (
+            <p className="text-red-500 text-sm">{errors.name.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block font-medium mb-1">Số tín chỉ</label>
+          <input
+            type="number"
+            {...register("credit", {
+              required: "Số tín chỉ bắt buộc",
+              min: {
+                value: 1,
+                message: "Số tín chỉ phải lớn hơn 0",
+              },
+              valueAsNumber: true,
+            })}
+            className="w-full border rounded-lg px-3 py-2"
+          />
+          {errors.credit && (
+            <p className="text-red-500 text-sm">{errors.credit.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block font-medium mb-1">Danh mục</label>
+          <select
+            {...register("category")}
+            className="w-full border rounded-lg px-3 py-2 bg-white"
+          >
+            <option value="Chuyên ngành">Chuyên ngành</option>
+            <option value="Cơ sở">Cơ sở</option>
+            <option value="Đại cương">Đại cương</option>
+          </select>
         </div>
 
         <div>
           <label className="block font-medium mb-1">Tên giáo viên</label>
           <input
-            {...register("teacher", { required: true })}
-            type="text"
+            {...register("teacher", {
+              required: "Tên giáo viên bắt buộc",
+              minLength: {
+                value: 3,
+                message: "Tên giáo viên phải lớn hơn 3 ký tự",
+              },
+            })}
             className="w-full border rounded-lg px-3 py-2"
           />
-        </div>
-
-        {/* Cấp độ */}
-        <div>
-          <label className="block font-medium mb-1">Cấp độ</label>
-          <select
-            {...register("level")}
-            className="w-full border rounded-lg px-3 py-2 bg-white"
-          >
-            <option value="basic">Cơ bản</option>
-            <option value="medium">Trung bình</option>
-            <option value="advanced">Nâng cao</option>
-          </select>
+          {errors.teacher && (
+            <p className="text-red-500 text-sm">{errors.teacher.message}</p>
+          )}
         </div>
 
         <button

@@ -29,15 +29,18 @@
       "teacher": "Phạm Văn D"
     },
     {
-      "name": "Tester",
-      "level": "medium",
-      "id": 5
+      "name": "Javascript",
+      "credit": 3,
+      "category": "Chuyên ngành",
+      "teacher": "Lê Trọng Đạt",
+      "id": 7
     },
     {
-      "name": "NodeJs",
-      "teacher": "Phí Đức Chính",
-      "level": "basic",
-      "id": 6
+      "name": "Tester",
+      "credit": 2,
+      "category": "Cơ sở",
+      "teacher": "Phan Thanh Nga",
+      "id": 8
     }
   ]
 }
