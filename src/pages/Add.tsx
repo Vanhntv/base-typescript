@@ -1,6 +1,7 @@
 import axios from "axios";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 type CourseForm = {
   name: string;
@@ -10,6 +11,9 @@ type CourseForm = {
 };
 
 function AddPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -17,23 +21,46 @@ function AddPage() {
     reset,
   } = useForm<CourseForm>();
 
-  const navigate = useNavigate();
+  const isEdit = Boolean(id);
+
+  useEffect(() => {
+    if (!isEdit) return;
+
+    const getDetail = async () => {
+      try {
+        const { data } = await axios.get(`http://localhost:3000/courses/${id}`);
+        reset(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    getDetail();
+  }, [id, isEdit, reset]);
 
   const onSubmit = async (values: CourseForm) => {
     try {
-      await axios.post("http://localhost:3000/courses", values);
-      alert("Thêm khóa học thành công!");
-      reset();
+      if (isEdit) {
+        await axios.put(`http://localhost:3000/courses/${id}`, values);
+        alert("Cập nhật khóa học thành công!");
+      } else {
+        await axios.post("http://localhost:3000/courses", values);
+        alert("Thêm khóa học thành công!");
+        reset();
+      }
+
       navigate("/courses");
     } catch (error) {
       console.log(error);
-      alert("Thêm thất bại!");
+      alert("Thao tác thất bại!");
     }
   };
 
   return (
     <div className="p-6 max-w-xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6">Thêm mới khóa học</h1>
+      <h1 className="text-2xl font-semibold mb-6">
+        {isEdit ? "Chỉnh sửa khóa học" : "Thêm mới khóa học"}
+      </h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
@@ -105,7 +132,7 @@ function AddPage() {
           type="submit"
           className="px-5 py-2 bg-blue-600 text-white rounded-lg"
         >
-          Thêm mới
+          {isEdit ? "Cập nhật" : "Thêm mới"}
         </button>
       </form>
     </div>
