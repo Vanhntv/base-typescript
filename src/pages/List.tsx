@@ -12,18 +12,41 @@ type Course = {
 
 function ListPage() {
   const [courses, setCourses] = useState<Course[]>([]);
+  const [keyword, setKeyword] = useState("");
+  const [category, setCategory] = useState("all");
+
+  const fetchCourses = async (
+    search: string = "",
+    categoryFilter: string = "all",
+  ) => {
+    try {
+      let url = "http://localhost:3000/courses?";
+      const params: string[] = [];
+
+      if (search) params.push(`q=${search}`);
+      if (categoryFilter !== "all")
+        params.push(`category=${encodeURIComponent(categoryFilter)}`);
+
+      url += params.join("&");
+
+      const { data } = await axios.get(url);
+      setCourses(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
-    const getAll = async () => {
-      try {
-        const { data } = await axios.get("http://localhost:3000/courses");
-        setCourses(data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getAll();
+    fetchCourses();
   }, []);
+
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      fetchCourses(keyword, category);
+    }, 500);
+
+    return () => clearTimeout(delay);
+  }, [keyword, category]);
 
   const handleDelete = async (id: number) => {
     if (!window.confirm("Bạn có chắc muốn xóa không?")) return;
@@ -31,7 +54,7 @@ function ListPage() {
     try {
       await axios.delete(`http://localhost:3000/courses/${id}`);
       alert("Xóa thành công!");
-      setCourses(courses.filter((item) => item.id !== id));
+      fetchCourses(keyword, category);
     } catch (error) {
       console.log(error);
       alert("Xóa thất bại!");
@@ -41,6 +64,27 @@ function ListPage() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-semibold mb-6">Danh sách khóa học</h1>
+
+      <div className="flex flex-col md:flex-row gap-4 mb-4">
+        <input
+          type="text"
+          placeholder="Tìm kiếm theo tên môn học..."
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          className="w-full md:w-1/3 border rounded-lg px-3 py-2"
+        />
+
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="w-full md:w-1/4 border rounded-lg px-3 py-2 bg-white"
+        >
+          <option value="all">Tất cả</option>
+          <option value="Cơ sở">Cơ sở</option>
+          <option value="Chuyên ngành">Chuyên ngành</option>
+          <option value="Đại cương">Đại cương</option>
+        </select>
+      </div>
 
       <div className="overflow-x-auto">
         <table className="w-full border border-gray-300 rounded-lg">
@@ -83,7 +127,7 @@ function ListPage() {
             {courses.length === 0 && (
               <tr>
                 <td colSpan={6} className="text-center py-4">
-                  Không có dữ liệu
+                  Không có dữ liệu phù hợp
                 </td>
               </tr>
             )}
